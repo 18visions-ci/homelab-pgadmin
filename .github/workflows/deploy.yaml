@@ -26,8 +26,13 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
+          if [ -n "${{ env.PI_DEV002 }}" ]; then
+            ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          else
+            echo "ERROR: PI_DEV002 is not set!"
+            exit 1
+          fi
 
       - name: Deploy to Dev
         run: |
