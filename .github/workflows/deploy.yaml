@@ -17,28 +17,47 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Debug Environment Variables
+      - name: Create SSH Directory
+        run: mkdir -p ~/.ssh
+
+      - name: Debug SSH Key Retrieval
         run: |
-          echo "Checking environment variables..."
+          echo "Checking if SSH key is retrieved correctly..."
+          echo "SSH Key Length: $(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "ERROR: SSH_PRIVATE_KEY is empty!"
+            exit 1
+          fi
+
+      - name: Write SSH Key to File
+        run: |
+          echo "Writing SSH key to file..."
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+
+      - name: Verify SSH Key File
+        run: |
+          echo "Verifying SSH key file..."
+          ls -lah ~/.ssh/
+          file ~/.ssh/id_rsa
+          cat ~/.ssh/id_rsa | wc -l
+
+      - name: Set Correct Permissions on SSH Key
+        run: chmod 600 ~/.ssh/id_rsa
+
+      - name: Verify Host Variable
+        run: |
+          echo "Checking PI_DEV002 variable..."
           echo "PI_DEV002: '${{ env.PI_DEV002 }}'"
-          echo "PROD_HOST: '${{ env.PROD_HOST }}'"
           if [ -z "${{ env.PI_DEV002 }}" ]; then
             echo "ERROR: PI_DEV002 is empty!"
             exit 1
           fi
 
-      - name: Setup SSH
+      - name: Add Host to known_hosts
         run: |
-          mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "Adding ${PI_DEV002} to known_hosts..."
+          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
-          if [ -n "${{ env.PI_DEV002 }}" ]; then
-            ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
-          else
-            echo "ERROR: PI_DEV002 is not set!"
-            exit 1
-          fi
 
       - name: Deploy to Dev
         run: |
