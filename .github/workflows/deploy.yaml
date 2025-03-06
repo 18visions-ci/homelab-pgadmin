@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:  # Allows manual execution for prod
 
+env:
+  PI_DEV002: ${{ env.PI_DEV002 }}
+  PROD_HOST: ${{ env.PROD_HOST }}
+
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
