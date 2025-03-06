@@ -1,0 +1,52 @@
+name: Deploy pgAdmin
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual execution for prod
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PI_DEV002 }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Dev
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.PI_DEV002 }} << 'EOF'
+            cd ~/homelab-pgadmin
+            git pull
+            docker-compose --env-file .env.dev up -d
+          EOF
+
+  deploy-prod:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: prod  # Requires manual approval
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Prod
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+            cd ~/homelab-pgadmin
+            git pull
+            docker-compose --env-file .env.prod up -d
+          EOF
