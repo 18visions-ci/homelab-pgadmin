@@ -13,6 +13,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Debug Secrets and Variables
+        run: |
+          echo "Checking secrets retrieval..."
+          echo "SSH Key Length: $(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
+          echo "DEV_HOST: '${{ secrets.DEV_HOST }}'"
+          echo "PROD_HOST: '${{ secrets.PROD_HOST }}'"
+
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
