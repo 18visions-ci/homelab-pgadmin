@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "Checking secrets retrieval..."
           echo "SSH Key Length: $(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
-          echo "DEV_HOST: '${{ secrets.DEV_HOST }}'"
+          echo "DEV_HOST: '${{ secrets.PI_DEV002 }}'"
           echo "PROD_HOST: '${{ secrets.PROD_HOST }}'"
 
 
