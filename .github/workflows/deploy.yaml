@@ -12,6 +12,7 @@ jobs:
     env:
       PI_DEV002: ${{ vars.PI_DEV002 }}
       PROD_HOST: ${{ vars.PROD_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
     
     steps:
       - name: Checkout repo
@@ -61,12 +62,9 @@ jobs:
           echo "Known hosts file contents:"
           cat ~/.ssh/known_hosts
 
-
-
-
       - name: Deploy to Dev
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+          ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
             git pull
             docker-compose --env-file .env.dev up -d
