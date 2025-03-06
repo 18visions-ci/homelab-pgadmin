@@ -6,31 +6,32 @@ on:
       - main
   workflow_dispatch:  # Allows manual execution for prod
 
-env:
-  PI_DEV002: ${{ env.PI_DEV002 }}
-  PROD_HOST: ${{ env.PROD_HOST }}
-
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
+    env:
+      PI_DEV002: ${{ env.PI_DEV002 }}
+    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Debug Secrets and Variables
+      - name: Debug Environment Variables
         run: |
-          echo "Checking secrets retrieval..."
-          echo "SSH Key Length: $(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
-          echo "DEV_HOST: '${{ env.PI_DEV002 }}'"
+          echo "Checking environment variables..."
+          echo "PI_DEV002: '${{ env.PI_DEV002 }}'"
           echo "PROD_HOST: '${{ env.PROD_HOST }}'"
-
+          if [ -z "${{ env.PI_DEV002 }}" ]; then
+            echo "ERROR: PI_DEV002 is empty!"
+            exit 1
+          fi
 
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
+          
           if [ -n "${{ env.PI_DEV002 }}" ]; then
             ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
           else
@@ -50,6 +51,9 @@ jobs:
     needs: deploy-dev
     runs-on: ubuntu-latest
     environment: prod  # Requires manual approval
+    env:
+      PROD_HOST: ${{ env.PROD_HOST }}
+    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -59,11 +63,17 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+          
+          if [ -n "${{ env.PROD_HOST }}" ]; then
+            ssh-keyscan -H ${{ env.PROD_HOST }} >> ~/.ssh/known_hosts
+          else
+            echo "ERROR: PROD_HOST is not set!"
+            exit 1
+          fi
 
       - name: Deploy to Prod
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
+          ssh ${{ secrets.SSH_USER }}@${{ env.PROD_HOST }} << 'EOF'
             cd ~/homelab-pgadmin
             git pull
             docker-compose --env-file .env.prod up -d
