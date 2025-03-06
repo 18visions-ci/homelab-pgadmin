@@ -10,7 +10,8 @@ jobs:
   deploy-dev:
     runs-on: ubuntu-latest
     env:
-      PI_DEV002: ${{ env.PI_DEV002 }}
+      PI_DEV002: ${{ vars.PI_DEV002 }}
+      PROD_HOST: ${{ vars.PROD_HOST }}
     
     steps:
       - name: Checkout repo
@@ -52,7 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: prod  # Requires manual approval
     env:
-      PROD_HOST: ${{ env.PROD_HOST }}
+      PI_DEV002: ${{ vars.PI_DEV002 }}
+      PROD_HOST: ${{ vars.PROD_HOST }}
     
     steps:
       - name: Checkout repo
