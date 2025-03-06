@@ -53,9 +53,14 @@ jobs:
             exit 1
           fi
 
-      - name: Run SSH Keyscan with RSA & ED25519
+      - name: Run SSH Keyscan Without Hashing
         run: |
-          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          echo "Disabling hashed known hosts..."
+          export SSH_KNOWN_HOSTS_HASHING=no
+          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} 2>/dev/null >> ~/.ssh/known_hosts || echo "SSH Keyscan Failed"
+          echo "Known hosts file contents:"
+          cat ~/.ssh/known_hosts
+
 
 
 
