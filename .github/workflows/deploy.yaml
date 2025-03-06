@@ -53,10 +53,10 @@ jobs:
             exit 1
           fi
 
-      - name: Add Host to known_hosts
+      - name: Run SSH Keyscan with RSA & ED25519
         run: |
-          echo "Adding ${PI_DEV002} to known_hosts..."
-          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+
 
 
       - name: Deploy to Dev
