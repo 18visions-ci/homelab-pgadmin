@@ -28,4 +28,4 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          timeout 30s ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "whoami" || echo "SSH command timed out"
+          whoami || echo "SSH command timed out"
