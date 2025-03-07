@@ -30,10 +30,11 @@ jobs:
             exit 1
           fi
 
-      - name: Debug SSH Execution
+      - name: List SSH Keys for Debugging
         run: |
-          echo "Testing SSH Connection..."
-          ssh -vvv -o StrictHostKeyChecking=no -o BatchMode=yes ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
+          ls -lah ~/.ssh
+          cat ~/.ssh/id_rsa.pub || echo "No public key found"
+          cat ~/.ssh/id_rsa || echo "No private key found"
 
       - name: Write SSH Key to File
         run: |
