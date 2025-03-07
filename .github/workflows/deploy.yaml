@@ -17,39 +17,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Create SSH Key
+      - name: Setup SSH Keys
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          echo "$SSH_PRIVATE_KEY" > private.key
-          chmod 400 private.key
-
-      - name: Start SSH Agent and Add Key
-        run: |
-          eval `ssh-agent -s`
-          ssh-add private.key
-
-      - name: Add remote server to known_hosts
-        run: |
-          mkdir -p ~/.ssh  # Ensure the .ssh directory exists
-          touch ~/.ssh/known_hosts  # Ensure known_hosts file exists
-          chmod 600 ~/.ssh/known_hosts  # Set proper permissions
-          for i in {1..5}; do
-            ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts && break
-            echo "Retrying ssh-keyscan ($i/5)..."
-            sleep 5
-          done
-
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
 
       - name: Deploy to server
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          timeout 30s ssh -o StrictHostKeyChecking=no -T ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
-          whoami
-          EOF
-        shell: bash
-
-
-
-      - name: Cleanup SSH Key
-        if: always()
-        run: rm -f private.key
+          timeout 30s ssh -o StrictHostKeyChecking=no -T ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "whoami" || echo "SSH command timed out"
