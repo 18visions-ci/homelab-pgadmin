@@ -30,6 +30,11 @@ jobs:
             exit 1
           fi
 
+      - name: Test SSH Simple Command
+        run: |
+          ssh -vvv -o StrictHostKeyChecking=no -o BatchMode=yes ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
+
+
       - name: Write SSH Key to File
         run: |
           echo "Writing SSH key to file..."
