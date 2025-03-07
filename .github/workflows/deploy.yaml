@@ -28,4 +28,6 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          hostname || echo "SSH command timed out"
+          ssh ${{ secrets.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+            hostname
+          EOF
