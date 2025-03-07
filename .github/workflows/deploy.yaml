@@ -25,15 +25,15 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
-      - name: Create remote directory
+      - name: Create homelab-pgadmin directory
         run: ssh -i ~/.ssh/deploy_key ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} 'mkdir -p ~/homelab-pgadmin'
 
-      - name: Copy Docker Compose files
+      - name: Copy Docker Compose file to destination
         run: |
           scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ env.SSH_USER }}@${{ env.PI_DEV002 }}:~/homelab-pgadmin/docker-compose.yaml
           scp -i ~/.ssh/deploy_key ./.env.dev ${{ env.SSH_USER }}@${{ env.PI_DEV002 }}:~/homelab-pgadmin/.env.dev
 
-      - name: SSH and Deploy Docker Compose
+      - name: SSH and deploy with Docker Compose
         run: |
           ssh -i ~/.ssh/deploy_key ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
@@ -45,8 +45,10 @@ jobs:
 
   deploy-prod:
     runs-on: [self-hosted]
-    needs: deploy
-    environment: production
+    needs: deploy-dev
+    environment:
+      name: production
+      url: http://${{ vars.PI_PROD002 }}
 
     steps:
       - name: Checkout repository
@@ -57,29 +59,22 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ vars.PI_PROD002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.PI_PROD002 }} >> ~/.ssh/known_hosts
 
-      - name: Create remote directory
-        run: ssh -i ~/.ssh/deploy_key ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }} 'mkdir -p ~/homelab-pgadmin'
+      - name: Create homelab-pgadmin directory
+        run: ssh -i ~/.ssh/deploy_key ${{ env.SSH_USER }}@${{ env.PI_PROD002 }} 'mkdir -p ~/homelab-pgadmin'
 
-      - name: Copy Docker Compose files
+      - name: Copy Docker Compose file to destination
         run: |
-          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/docker-compose.yaml
-          scp -i ~/.ssh/deploy_key ./.env.prod ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/.env.prod
+          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ env.SSH_USER }}@${{ env.PI_PROD002 }}:~/homelab-pgadmin/docker-compose.yaml
+          scp -i ~/.ssh/deploy_key ./.env.prod ${{ env.SSH_USER }}@${{ env.PI_PROD002 }}:~/homelab-pgadmin/.env.prod
 
       - name: SSH and deploy with Docker Compose
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{ env.SSH_USER }}@${{ env.PI_PROD002 }} << 'EOF'
             cd ~/homelab-pgadmin
             sudo docker compose --env-file .env.prod up -d
           EOF
 
       - name: Cleanup SSH key
         run: rm -f ~/.ssh/deploy_key
-
-    runs-on: [self-hosted]
-    needs: deploy
-    environment:
-      name: production
-      url: http://${{ vars.PI_PROD002 }}
-    concurrency: production
