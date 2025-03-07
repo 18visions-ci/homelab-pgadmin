@@ -18,29 +18,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup SSH Key
+      - name: Debug SSH Variables
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} 2>/dev/null >> ~/.ssh/known_hosts || echo "SSH Keyscan Failed"
+          echo "SSH_USER: '${{ env.SSH_USER }}'"
+          echo "PI_DEV002: '${{ env.PI_DEV002 }}'"
 
-      - name: Debug SSH Key
-        run: |
-          echo "Checking SSH Key and Known Hosts..."
-          ls -lah ~/.ssh
-          cat ~/.ssh/id_rsa || echo "No private key found"
-          cat ~/.ssh/known_hosts || echo "No known hosts found"
-
-      - name: Test SSH Connection
-        run: |
-          echo "Testing SSH Connection..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
-
-      - name: Deploy to Dev
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+      - name: Deploy using appleboy/ssh-action
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.PI_DEV002 }}
+          username: ${{ env.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "SSH Connection Successful!"
             cd ~/homelab-pgadmin
             git pull
             docker-compose --env-file .env.dev up -d
-          EOF
+          debug: true
