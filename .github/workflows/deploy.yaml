@@ -64,11 +64,12 @@ jobs:
 
       - name: Deploy to Dev
         run: |
-          ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+          ssh -t -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
             git pull
             docker-compose --env-file .env.dev up -d
           EOF
+
 
   deploy-prod:
     needs: deploy-dev
