@@ -22,7 +22,7 @@ jobs:
 
       - name: Copy Docker Compose file to destination
         run: |
-          scp -i ~/.ssh/deploy_key ./docker-compose.yml nick@10.7.0.79:/home/user/app/docker-compose.yml
+          scp -i ~/.ssh/deploy_key ./docker-compose.yml nick@10.7.0.79:/home/user/app/docker-compose.yaml
 
       - name: SSH and deploy with Docker Compose
         run: |
