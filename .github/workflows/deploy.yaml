@@ -17,15 +17,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup SSH Keys
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - name: set up ssh keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Deploy to Dev
         run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
-
-      - name: Deploy to server
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} && hostname
+          ssh -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa $SSH_USER@$PI_DEV002 "hostname"
