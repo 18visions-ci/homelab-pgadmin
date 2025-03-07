@@ -24,7 +24,7 @@ jobs:
 
       - name: Add remote server to known_hosts
         run: |
-          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} 2>/dev/null >> ~/.ssh/known_hosts || echo "SSH Keyscan Failed"
+          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
