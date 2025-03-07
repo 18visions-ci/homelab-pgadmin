@@ -26,6 +26,7 @@ jobs:
       - name: Copy Docker Compose file to destination
         run: |
           scp -i ~/.ssh/deploy_key ./docker-compose.yaml nick@10.7.0.79:~/homelab-pgadmin/docker-compose.yaml
+          scp -i ~/.ssh/deploy_key ./.env.dev nick@10.7.0.79:~/homelab-pgadmin/.env.dev
 
       - name: SSH and deploy with Docker Compose
         run: |
