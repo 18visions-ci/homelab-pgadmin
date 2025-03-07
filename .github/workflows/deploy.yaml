@@ -22,7 +22,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H {{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
       - name: Create homelab-pgadmin directory
         run: ssh -i ~/.ssh/deploy_key ${{env.SSH_USER }}@${{ env.PI_DEV002 }} 'mkdir -p ~/homelab-pgadmin'
