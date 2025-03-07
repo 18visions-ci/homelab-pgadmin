@@ -5,9 +5,9 @@ on:
     branches:
       - main
 
-env:
-  PI_DEV002: ${{ vars.PI_DEV002 }}
-  SSH_USER: ${{ vars.SSH_USER }}
+#env:
+#  PI_DEV002: ${{ vars.PI_DEV002 }}
+#  SSH_USER: ${{ vars.SSH_USER }}
 
 jobs:
   deploy:
@@ -22,19 +22,19 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ vars.PI_DEV002 }} >> ~/.ssh/known_hosts
 
       - name: Create homelab-pgadmin directory
-        run: ssh -i ~/.ssh/deploy_key ${{env.SSH_USER }}@${{ env.PI_DEV002 }} 'mkdir -p ~/homelab-pgadmin'
+        run: ssh -i ~/.ssh/deploy_key ${{vars.SSH_USER }}@${{ vars.PI_DEV002 }} 'mkdir -p ~/homelab-pgadmin'
 
       - name: Copy Docker Compose file to destination
         run: |
-          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{env.SSH_USER }}@${{ env.PI_DEV002 }}:~/homelab-pgadmin/docker-compose.yaml
-          scp -i ~/.ssh/deploy_key ./.env.dev ${{env.SSH_USER }}@${{ env.PI_DEV002 }}:~/homelab-pgadmin/.env.dev
+          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{vars.SSH_USER }}@${{ vars.PI_DEV002 }}:~/homelab-pgadmin/docker-compose.yaml
+          scp -i ~/.ssh/deploy_key ./.env.dev ${{vars.SSH_USER }}@${{ vars.PI_DEV002 }}:~/homelab-pgadmin/.env.dev
 
       - name: SSH and deploy with Docker Compose
         run: |
-          ssh -i ~/.ssh/deploy_key ${{env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{vars.SSH_USER }}@${{ vars.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
             sudo docker compose --env-file .env.dev up -d
           EOF
