@@ -30,10 +30,9 @@ jobs:
             exit 1
           fi
 
-      - name: Test SSH Simple Command
+      - name: Force SSH Key Authentication
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no -o BatchMode=yes ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
-
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o PreferredAuthentications=publickey ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
 
       - name: Write SSH Key to File
         run: |
