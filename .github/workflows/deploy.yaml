@@ -31,6 +31,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "SSH Connection Successful!"
+            mkdir -p ~/homelab-pgadmin
             cd ~/homelab-pgadmin
             git pull
             docker-compose --env-file .env.dev up -d
