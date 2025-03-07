@@ -19,7 +19,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} 2>/dev/null >> ~/.ssh/known_hosts || echo "SSH Keyscan Failed"
 
       - name: Debug SSH Key
         run: |
