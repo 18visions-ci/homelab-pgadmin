@@ -28,6 +28,4 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ env.PI_DEV002 }} << EOF
-            hostname
-          EOF
+          ssh ${{ secrets.SSH_USER }}@${{ env.PI_DEV002 }} && hostname
