@@ -24,7 +24,7 @@ jobs:
 
       - name: Add remote server to known_hosts
         run: |
-          ssh-keyscan ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
