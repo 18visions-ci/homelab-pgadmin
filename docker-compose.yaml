@@ -15,6 +15,3 @@ services:
 
 volumes:
   pgadmin_data:
-
-networks:
-  homelab:
