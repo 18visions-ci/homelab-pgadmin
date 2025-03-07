@@ -28,8 +28,6 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
-            cd ~/homelab-pgadmin
-            git pull
-            docker compose --env-file .env.dev up -d
-          EOF          
+          timeout 30s ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+            whoami
+          EOF || echo "SSH command timed out"
