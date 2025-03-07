@@ -31,7 +31,7 @@ jobs:
         with:
           host: ${{ env.PI_DEV002 }}
           username: ${{ env.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key_path: /home/runner/.ssh/id_rsa
           script: |
             echo "SSH Connection Successful!"
             mkdir -p ~/homelab-pgadmin
