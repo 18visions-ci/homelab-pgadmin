@@ -11,18 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PI_DEV002: ${{ vars.PI_DEV002 }}
-      PROD_HOST: ${{ vars.PROD_HOST }}
       SSH_USER: ${{ vars.SSH_USER }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Deploy using appleboy/ssh-action
-        uses: appleboy/ssh-action@master
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ env.PI_DEV002 }}
-          username: nick
-          password: ${{ secrets.PASSWORD }}
-          port: 22
-          script: whoami
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add remote server to known_hosts
+        run: |
+          ssh-keyscan env.${{ env.SSH_USER }}@${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh env.${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+            cd ~/homelab-pgadmin
+            git pull
+            docker compose --env-file .env.dev up -d
+          EOF          
