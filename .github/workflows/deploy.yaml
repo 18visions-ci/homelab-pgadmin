@@ -24,11 +24,11 @@ jobs:
 
       - name: Add remote server to known_hosts
         run: |
-          ssh-keyscan env.${{ env.SSH_USER }}@${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          ssh env.${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
+          ssh ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
             git pull
             docker compose --env-file .env.dev up -d
