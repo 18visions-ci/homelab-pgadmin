@@ -1,30 +1,34 @@
-name: Deploy to Dev
+name: Deploy Docker Compose via SSH
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allows manual execution
 
 jobs:
-  deploy-dev:
-    runs-on: ubuntu-latest
-    env:
-      PI_DEV002: ${{ vars.PI_DEV002 }}
-      SSH_USER: ${{ vars.SSH_USER }}
+  deploy:
+    runs-on: [self-hosted]
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: set up ssh keys to /root/.ssh
+      - name: Setup SSH key
         run: |
-          sudo mkdir -p /root/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /root/.ssh/id_rsa
-          sudo chmod 600 /root/.ssh/id_rsa
-          sudo ssh-keyscan -t rsa ${{ env.PI_DEV002 }} >> /root/.ssh/known_hosts
-          sudo chmod 644 /root/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 10.7.0.79 >> ~/.ssh/known_hosts
 
-      - name: Deploy to Dev
+      - name: Copy Docker Compose file to destination
         run: |
-          ssh -i /root/.ssh/id_rsa ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} 'hostname'
+          scp -i ~/.ssh/deploy_key ./docker-compose.yml user@10.7.0.79:/home/user/app/docker-compose.yml
+
+      - name: SSH and deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/deploy_key nick@10.7.0.79 << 'EOF'
+            hostname
+          EOF
+
+      - name: Cleanup SSH key
+        run: rm -f ~/.ssh/deploy_key
