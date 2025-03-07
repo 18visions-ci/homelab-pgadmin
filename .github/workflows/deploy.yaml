@@ -9,6 +9,10 @@ on:
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
+    env:
+      PI_DEV002: ${{ vars.PI_DEV002 }}
+      PROD_HOST: ${{ vars.PROD_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
 
     steps:
       - name: Checkout repo
