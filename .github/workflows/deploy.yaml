@@ -32,8 +32,9 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key nick@10.7.0.79 << 'EOF'
             cd ~/homelab-pgadmin
-            docker compose --env-file .env.dev up -d
+            sudo docker compose --env-file .env.dev up -d
           EOF
+
 
       - name: Cleanup SSH key
         run: rm -f ~/.ssh/deploy_key
