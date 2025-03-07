@@ -18,24 +18,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup SSH Key Correctly
-        run: |
-          sudo mkdir -p /home/runner/.ssh
-          sudo chmod 700 /home/runner/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /home/runner/.ssh/id_rsa > /dev/null
-          sudo chmod 600 /home/runner/.ssh/id_rsa
-          sudo chown -R runner:docker /home/runner/.ssh
-
       - name: Deploy using appleboy/ssh-action
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.PI_DEV002 }}
-          username: ${{ env.SSH_USER }}
-          key_path: /home/runner/.ssh/id_rsa
-          script: |
-            echo "SSH Connection Successful!"
-            mkdir -p ~/homelab-pgadmin
-            cd ~/homelab-pgadmin
-            git pull
-            docker-compose --env-file .env.dev up -d
-          debug: true
+          username: nick
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: whoami
