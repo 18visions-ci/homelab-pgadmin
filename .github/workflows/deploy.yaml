@@ -31,11 +31,15 @@ jobs:
 
       - name: Add remote server to known_hosts
         run: |
+          mkdir -p ~/.ssh  # Ensure the .ssh directory exists
+          touch ~/.ssh/known_hosts  # Ensure known_hosts file exists
+          chmod 600 ~/.ssh/known_hosts  # Set proper permissions
           for i in {1..5}; do
             ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts && break
             echo "Retrying ssh-keyscan ($i/5)..."
             sleep 5
           done
+
 
       - name: Deploy to server
         run: |
