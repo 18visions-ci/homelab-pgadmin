@@ -1,15 +1,14 @@
-name: Manual Production Deploy
+name: Manual Production Deployment
 
 on:
   workflow_dispatch:
 
 jobs:
   deploy-prod:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, runner-prod]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
@@ -18,16 +17,10 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ vars.PI_PROD002 }} >> ~/.ssh/known_hosts
 
-      - name: Create remote directory
-        run: ssh -i ~/.ssh/deploy_key ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }} 'mkdir -p ~/homelab-pgadmin'
-
-      - name: Copy Docker Compose file to destination
+      - name: Deploy via SSH
         run: |
-          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/docker-compose.yaml
-          scp -i ~/.ssh/deploy_key ./.env.prod ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/.env.prod
-
-      - name: SSH and deploy with Docker Compose
-        run: |
+          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/
+          scp -i ~/.ssh/deploy_key ./.env.prod ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }}:~/homelab-pgadmin/
           ssh -i ~/.ssh/deploy_key ${{ vars.SSH_USER }}@${{ vars.PI_PROD002 }} << 'EOF'
             cd ~/homelab-pgadmin
             sudo docker compose --env-file .env.prod up -d

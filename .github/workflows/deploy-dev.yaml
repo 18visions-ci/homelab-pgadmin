@@ -1,0 +1,32 @@
+name: Deploy Dev Environment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-dev:
+    runs-on: [self-hosted, runner-dev]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ vars.PI_DEV002 }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH
+        run: |
+          scp -i ~/.ssh/deploy_key ./docker-compose.yaml ${{ vars.SSH_USER }}@${{ vars.PI_DEV002 }}:~/homelab-pgadmin/
+          scp -i ~/.ssh/deploy_key ./.env.dev ${{ vars.SSH_USER }}@${{ vars.PI_DEV002 }}:~/homelab-pgadmin/
+          ssh -i ~/.ssh/deploy_key ${{ vars.SSH_USER }}@${{ vars.PI_DEV002 }} << 'EOF'
+            cd ~/homelab-pgadmin
+            sudo docker compose --env-file .env.dev up -d
+          EOF
+
+      - name: Cleanup SSH key
+        run: rm -f ~/.ssh/deploy_key
