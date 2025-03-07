@@ -43,9 +43,11 @@ jobs:
 
       - name: Deploy to server
         run: |
-          timeout 30s ssh -o StrictHostKeyChecking=no -T ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} <<EOF
+          timeout 30s ssh -o StrictHostKeyChecking=no -T ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
           whoami
-          EOF || echo "SSH command timed out"
+          EOF
+        shell: bash
+
 
 
       - name: Cleanup SSH Key
