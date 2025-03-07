@@ -1,109 +1,42 @@
-name: Deploy pgAdmin
+name: Deploy to Dev
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allows manual execution for prod
+  workflow_dispatch:  # Allows manual execution
 
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
-    env:
-      PI_DEV002: ${{ vars.PI_DEV002 }}
-      PROD_HOST: ${{ vars.PROD_HOST }}
-      SSH_USER: ${{ vars.SSH_USER }}
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Create SSH Directory
-        run: mkdir -p ~/.ssh
-
-      - name: Debug SSH Key Retrieval
+      - name: Setup SSH Key
         run: |
-          echo "Checking if SSH key is retrieved correctly..."
-          echo "SSH Key Length: $(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
-          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
-            echo "ERROR: SSH_PRIVATE_KEY is empty!"
-            exit 1
-          fi
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.PI_DEV002 }} >> ~/.ssh/known_hosts
 
-      - name: List SSH Keys for Debugging
+      - name: Debug SSH Key
         run: |
+          echo "Checking SSH Key and Known Hosts..."
           ls -lah ~/.ssh
-          cat ~/.ssh/id_rsa.pub || echo "No public key found"
           cat ~/.ssh/id_rsa || echo "No private key found"
+          cat ~/.ssh/known_hosts || echo "No known hosts found"
 
-      - name: Write SSH Key to File
+      - name: Test SSH Connection
         run: |
-          echo "Writing SSH key to file..."
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-
-      - name: Verify SSH Key File
-        run: |
-          echo "Verifying SSH key file..."
-          ls -lah ~/.ssh/
-          file ~/.ssh/id_rsa
-          cat ~/.ssh/id_rsa | wc -l
-
-      - name: Set Correct Permissions on SSH Key
-        run: chmod 600 ~/.ssh/id_rsa
-
-      - name: Verify Host Variable
-        run: |
-          echo "Checking PI_DEV002 variable..."
-          echo "PI_DEV002: '${{ env.PI_DEV002 }}'"
-          if [ -z "${{ env.PI_DEV002 }}" ]; then
-            echo "ERROR: PI_DEV002 is empty!"
-            exit 1
-          fi
-
-      - name: Run SSH Keyscan Without Hashing
-        run: |
-          echo "Disabling hashed known hosts..."
-          export SSH_KNOWN_HOSTS_HASHING=no
-          ssh-keyscan -t rsa,ed25519 -H ${{ env.PI_DEV002 }} 2>/dev/null >> ~/.ssh/known_hosts || echo "SSH Keyscan Failed"
-          echo "Known hosts file contents:"
-          cat ~/.ssh/known_hosts
+          echo "Testing SSH Connection..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "echo SSH Connection Successful"
 
       - name: Deploy to Dev
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "cd ~/homelab-pgadmin && git pull"
-          ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} "docker-compose --env-file .env.dev up -d"
-
-
-
-  deploy-prod:
-    needs: deploy-dev
-    runs-on: ubuntu-latest
-    environment: prod  # Requires manual approval
-    env:
-      PI_DEV002: ${{ vars.PI_DEV002 }}
-      PROD_HOST: ${{ vars.PROD_HOST }}
-    
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          if [ -n "${{ env.PROD_HOST }}" ]; then
-            ssh-keyscan -H ${{ env.PROD_HOST }} >> ~/.ssh/known_hosts
-          else
-            echo "ERROR: PROD_HOST is not set!"
-            exit 1
-          fi
-
-      - name: Deploy to Prod
-        run: |
-          ssh ${{ secrets.SSH_USER }}@${{ env.PROD_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} << 'EOF'
             cd ~/homelab-pgadmin
             git pull
-            docker-compose --env-file .env.prod up -d
+            docker-compose --env-file .env.dev up -d
           EOF
