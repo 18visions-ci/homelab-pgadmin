@@ -21,7 +21,17 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Check if SSH port is open
+        run: |
+          nc -zv $PI_DEV002 22 || echo "SSH port is not reachable"
+
+      - name: Debug SSH Connection
+        run: |
+          ssh -vvv -o StrictHostKeyChecking=no $SSH_USER@$PI_DEV002 "hostname"
+
       
       - name: Deploy to Dev
         run: |
-          ssh -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa $SSH_USER@$PI_DEV002 "hostname"
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$PI_DEV002 "hostname"
+
