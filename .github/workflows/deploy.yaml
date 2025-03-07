@@ -17,21 +17,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: set up ssh keys
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Check if SSH port is open
+      - name: set up ssh keys to /root/.ssh
         run: |
-          nc -zv $PI_DEV002 22 || echo "SSH port is not reachable"
+          mkdir -p /root/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /root/.ssh/id_rsa
+          chmod 600 /root/.ssh/id_rsa
+          ssh-keyscan -t rsa ${{ env.PI_DEV002 }} >> /root/.ssh/known_hosts
+          chmod 644 /root/.ssh/known_hosts
 
-      - name: Debug SSH Connection
-        run: |
-          ssh -vvv -o StrictHostKeyChecking=no $SSH_USER@$PI_DEV002 "hostname"
-
-      
       - name: Deploy to Dev
         run: |
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$PI_DEV002 "hostname"
-
+          ssh -i /root/.ssh/id_rsa ${{ env.SSH_USER }}@${{ env.PI_DEV002 }} 'hostname'
