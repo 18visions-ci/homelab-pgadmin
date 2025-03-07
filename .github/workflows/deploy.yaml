@@ -21,12 +21,6 @@ jobs:
       - name: Create SSH Directory
         run: mkdir -p ~/.ssh
 
-      - name: Debug SSH Connectivity
-        run: |
-          echo "Testing SSH Port 22"
-          nc -zv ${{ env.PI_DEV002 }} 22 || echo "SSH port unreachable"
-
-
       - name: Debug SSH Key Retrieval
         run: |
           echo "Checking if SSH key is retrieved correctly..."
